@@ -1,8 +1,0 @@
-{{- define "common.resources" }}
-requests:
-  memory: {{.requestsMemory}}
-  cpu: {{.requestsCpu}}
-limits:
-  memory: {{.limitsMemory}}
-  cpu: {{.limitsCpu}}
-{{- end }}
