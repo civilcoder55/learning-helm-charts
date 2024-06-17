@@ -20,7 +20,11 @@ mysql:
   image:
     repository: mysql
     tag: latest
-  rootPassword: "root"
+  password:
+    fromSecret: false
+    value: "root"
+    secretName: app-secrets
+    secretKey: MYSQL_PASSWORD
   database: "api-test"
   requestsMemory: "1Gi"
   requestsCpu: "300m"

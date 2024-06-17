@@ -35,8 +35,16 @@ spec:
               value: {{ .Values.mysql.database }}
             - name: MYSQL_USERNAME
               value: "root"
+            {{- if .Values.mysql.password.fromSecret }}
             - name: MYSQL_PASSWORD
-              value: {{ .Values.mysql.rootPassword }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.password.secretName }}
+                  key: {{ .Values.mysql.password.secretKey }}
+            {{- else }}
+            - name: MYSQL_PASSWORD
+              value: {{ .Values.mysql.password.value }}
+            {{- end }}
             {{- if .Values.app.environment }}
               {{toYaml .Values.app.environment | nindent 12 }}
             {{- end }}
@@ -64,8 +72,16 @@ spec:
             - name: {{.Values.app.name}}-mysql-storage
               mountPath: /var/lib/mysql
           env:
+            {{- if .Values.mysql.password.fromSecret }}
             - name: MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mysql.rootPassword }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mysql.password.secretName }}
+                  key: {{ .Values.mysql.password.secretKey }}
+            {{- else }}
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mysql.password.value }}
+            {{- end }}
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
           {{- if .Values.mysql.environment }}
