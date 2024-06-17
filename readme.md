@@ -11,11 +11,9 @@ Once Helm has been set up correctly, add the repo as follows:
 helm repo add <alias> https://civilcoder55.github.io/learning-helm-charts
 ```
 
-If you had already added this repo earlier, run `helm repo update` to retrieve
-the latest versions of the packages.
+If you had already added this repo earlier, run `helm repo update` to retrieve the latest versions of the packages.
 
-You can then run `helm search repo
-<alias>` to see the charts.
+You can then run `helm search repo <alias>` to see the charts.
 
 ***
 
