@@ -22,10 +22,10 @@ mysql:
     tag: latest
   rootPassword: "root"
   database: "api-test"
-  requestsMemory:
-  requestsCpu:
-  limitsMemory:
-  limitsCpu:
+  requestsMemory: "1Gi"
+  requestsCpu: "300m"
+  limitsMemory: "2Gi"
+  limitsCpu: "500m"
   extraEnvironment:
     
 
@@ -33,10 +33,10 @@ redis:
   image:
     repository: redis
     tag: alpine
-  requestsMemory:
-  requestsCpu:
-  limitsMemory:
-  limitsCpu:
+  requestsMemory: "200Mi"
+  requestsCpu: "100m"
+  limitsMemory: "400Mi"
+  limitsCpu: "200m"
   extraEnvironment:
     
 

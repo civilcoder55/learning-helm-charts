@@ -21,9 +21,6 @@ spec:
           imagePullPolicy: {{.Values.app.image.pullPolicy}}
           command: {{.Values.app.image.command}}
           env:
-          {{- if .Values.app.environment }}
-            {{toYaml .Values.app.environment | nindent 12 }}
-          {{- end }}
             - name: PORT
               value: "{{.Values.app.image.port}}"
             - name: REDIS_HOST
@@ -40,6 +37,9 @@ spec:
               value: "root"
             - name: MYSQL_PASSWORD
               value: {{ .Values.mysql.rootPassword }}
+            {{- if .Values.app.environment }}
+              {{toYaml .Values.app.environment | nindent 12 }}
+            {{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -59,7 +59,7 @@ spec:
         - name: {{.Values.app.name}}-mysql
           image: {{.Values.mysql.image.repository}}:{{.Values.mysql.image.tag}}
           resources:
-            {{- include "common.resources" (dict "requestsMemory" "1Gi" "requestsCpu" "100m" "limitsMemory" "2Gi" "limitsCpu" "500m") | indent 12 }}
+            {{- include "common.resources" (dict "requestsMemory" .Values.mysql.requestsMemory "requestsCpu" .Values.mysql.requestsCpu "limitsMemory" .Values.mysql.limitsMemory "limitsCpu" .Values.mysql.limitsCpu ) | indent 12 }}
           volumeMounts:
             - name: {{.Values.app.name}}-mysql-storage
               mountPath: /var/lib/mysql
@@ -95,7 +95,7 @@ spec:
           image: {{.Values.redis.image.repository}}:{{.Values.redis.image.tag}}
           command: ["redis-server", "--save", "60", "1"]
           resources:
-            {{- include "common.resources" (dict "requestsMemory" "200Mi" "requestsCpu" "100m" "limitsMemory" "200Mi" "limitsCpu" "100") | indent 12 }}
+            {{- include "common.resources" (dict "requestsMemory" .Values.redis.requestsMemory "requestsCpu" .Values.redis.requestsCpu "limitsMemory" .Values.redis.limitsMemory "limitsCpu" .Values.redis.limitsCpu ) | indent 12 }}
           volumeMounts:
             - name: {{.Values.app.name}}-redis-storage
               mountPath: /data
