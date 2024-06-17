@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.app.name}}-deployment
+spec:
+  replicas: {{.Values.app.replicas}}
+  selector:
+    matchLabels:
+      app: {{.Values.app.name}}-pod
+  template:
+    metadata:
+      name: {{.Values.app.name}}-pod
+      labels:
+        app: {{.Values.app.name}}-pod
+    spec:
+      containers:
+        - name: {{.Values.app.name}}-container
+          image: {{.Values.app.image.repository}}:{{.Values.app.image.tag}}
+          resources:
+            {{- include "common.resources" (dict "requestsMemory" .Values.app.requestsMemory "requestsCpu" .Values.app.requestsCpu "limitsMemory" .Values.app.limitsMemory "limitsCpu" .Values.app.limitsCpu ) | indent 12 }}
+          imagePullPolicy: {{.Values.app.image.pullPolicy}}
+          command: {{.Values.app.image.command}}
+          env:
+          {{- if .Values.app.environment }}
+            {{toYaml .Values.app.environment | nindent 12 }}
+          {{- end }}
+            - name: PORT
+              value: "{{.Values.app.image.port}}"
+            - name: REDIS_HOST
+              value: "{{.Values.app.name}}-redis-service"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: MYSQL_HOST
+              value: "{{.Values.app.name}}-mysql-service"
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database }}
+            - name: MYSQL_USERNAME
+              value: "root"
+            - name: MYSQL_PASSWORD
+              value: {{ .Values.mysql.rootPassword }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.app.name}}-mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Values.app.name}}-mysql-pod
+  template:
+    metadata:
+      labels:
+        app: {{.Values.app.name}}-mysql-pod
+    spec:
+      containers:
+        - name: {{.Values.app.name}}-mysql
+          image: {{.Values.mysql.image.repository}}:{{.Values.mysql.image.tag}}
+          resources:
+            {{- include "common.resources" (dict "requestsMemory" "1Gi" "requestsCpu" "100m" "limitsMemory" "2Gi" "limitsCpu" "500m") | indent 12 }}
+          volumeMounts:
+            - name: {{.Values.app.name}}-mysql-storage
+              mountPath: /var/lib/mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mysql.rootPassword }}
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database }}
+          {{- if .Values.mysql.environment }}
+            {{toYaml .Values.mysql.extraEnvironment | nindent 12 }}
+          {{- end}}
+      volumes:
+        - name: {{.Values.app.name}}-mysql-storage
+          persistentVolumeClaim:
+            claimName: {{.Values.app.name}}-mysql-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.app.name}}-redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.Values.app.name}}-redis-pod
+  template:
+    metadata:
+      labels:
+        app: {{.Values.app.name}}-redis-pod
+    spec:
+      containers:
+        - name: {{.Values.app.name}}-redis
+          image: {{.Values.redis.image.repository}}:{{.Values.redis.image.tag}}
+          command: ["redis-server", "--save", "60", "1"]
+          resources:
+            {{- include "common.resources" (dict "requestsMemory" "200Mi" "requestsCpu" "100m" "limitsMemory" "200Mi" "limitsCpu" "100") | indent 12 }}
+          volumeMounts:
+            - name: {{.Values.app.name}}-redis-storage
+              mountPath: /data
+          env:
+          {{- if .Values.redis.environment }}
+            {{toYaml .Values.redis.environment | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: {{.Values.app.name}}-redis-storage
+          persistentVolumeClaim:
+            claimName: {{.Values.app.name}}-redis-pvc
